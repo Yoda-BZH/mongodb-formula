@@ -47,9 +47,9 @@ Debian:
       #name:  {{ grains.oscodename }}/mongodb-org/REL {{ 'main' if grains.os in ('Debian',) else 'multiverse' }}
       dist: [ "{{ grains.oscodename }}/mongodb-org/REL" ]
 {% if grains.os in ('Debian',) %}
-      comps: ['main']
+      comps: 'main'
 {% else %}
-      comps: ['multiverse']
+      comps: 'multiverse'
 {% endif %}
       # yamllint enable-line rule:line-length
                  {%- endif %}
