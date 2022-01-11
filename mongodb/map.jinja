@@ -69,7 +69,7 @@
 
 {%- do d.pkg.database.mongos.update({'path': d.pkg.database.mongod.path}) %}
 {%- if 'repo' in d.pkg and 'mongod' in d.pkg.database %}
-    {%- for fname in ('file', 'name', 'humanname', 'gpgkey',) %}
+    {%- for fname in ('file', 'name', 'humanname', 'gpgkey', 'key_url',) %}
         {%- if fname in d.pkg.repo %}
             {%- do d.pkg.repo.update({fname: d.pkg.repo[fname]|replace('REL', d.pkg.database.mongod.version)}) %}
         {%- endif %}
