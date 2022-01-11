@@ -46,7 +46,11 @@ Debian:
       architectures: "amd64,arm64"
       #name:  {{ grains.oscodename }}/mongodb-org/REL {{ 'main' if grains.os in ('Debian',) else 'multiverse' }}
       dist: [ "{{ grains.oscodename }}/mongodb-org/REL" ]
-      comps: ['main' if grains.os in ('Debian',) else 'multiverse']
+{% if grains.os in ('Debian',) %}
+      comps: ['main']
+{% else %}
+      comps: ['multiverse']
+{% endif %}
       # yamllint enable-line rule:line-length
                  {%- endif %}
     database:
