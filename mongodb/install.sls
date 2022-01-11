@@ -31,18 +31,18 @@ include:
       - pkg: {{ formula }}-install-prerequisites
       - pip: {{ formula }}-install-prerequisites
 
-    {%- for comp in d.componentypes %}
-        {%- if comp in d.wanted and d.wanted is iterable and comp in d.pkg and d.pkg[comp] is mapping %}
-            {%- for name,v in d.pkg[comp].items() %}
-                {%- if name in d.wanted[comp] %}
-                    {%- set software = d.pkg[comp][name] %}
-                    {%- set package = software['use_upstream'] %}
-                    {%- if package in d.packagetypes %}
+{%-     for comp in d.componentypes %}
+{%-         if comp in d.wanted and d.wanted is iterable and comp in d.pkg and d.pkg[comp] is mapping %}
+{%-             for name,v in d.pkg[comp].items() %}
+{%-                 if name in d.wanted[comp] %}
+{%-                     set software = d.pkg[comp][name] %}
+{%-                     set package = software['use_upstream'] %}
+{%-                     if package in d.packagetypes %}
 
                             {# DOWNLOAD NATIVE PACKAGE #}
 
-                        {%- if package != 'archive' and package in software and software[package] is mapping %}
-                            {%- if 'source' in software[package] %}
+{%-                         if package != 'archive' and package in software and software[package] is mapping %}
+{%-                             if 'source' in software[package] %}
 
 {{ formula }}-{{ comp }}-{{ name }}-{{ package }}-download:
   cmd.run:
@@ -53,7 +53,7 @@ include:
       - file: {{ formula }}-install-prerequisites
     - require_in:
       - {{ formula }}-{{ comp }}-{{ name }}-{{ package }}-install
-                                {%- if 'source_hash' in software[package] %}
+{%-                                 if 'source_hash' in software[package] %}
   module.run:
     - name: file.check_hash
     - path: {{ d.dir.tmp ~ '/' ~ comp ~ name ~ software['version'] }}
@@ -62,46 +62,46 @@ include:
     - name: {{ d.dir.tmp ~ '/' ~ comp ~ name ~ software['version'] }}
     - onfail:
       - module: {{ formula }}-{{ comp }}-{{ name }}-{{ package }}-download
-                                {%- endif %}
+{%-                                 endif %}
 
-                            {%- else %}
+{%-                             else %}
   test.show_notification:
     - text: |
         Note: there is no dict named 'source' in 'pkg:{{ comp }}:{{ name }}'.
-                            {%- endif %}  {# source #}
-                        {%- endif %}      {# download #}
+{%-                             endif %}  {# source #}
+{%-                         endif %}      {# download #}
 
 {{ formula }}-{{ comp }}-{{ name }}-{{ package }}-install:
 
                         {#- NATIVE PACKAGE INSTALL #}
 
-                        {%- if package in ('native', 'repo') %}
-                            {%- if package == 'repo' and 'repo' in d.pkg and d.pkg.repo %}
+{%-                         if package in ('native', 'repo') %}
+{%-                             if package == 'repo' and 'repo' in d.pkg and d.pkg.repo %}
   pkgrepo.managed:
-    {%- for k, v in d.pkg.repo|dictsort %}
-    {%-   if v %}
+{%-     for k, v in d.pkg.repo|dictsort %}
+{%-       if v %}
     - {{ k }}: {{ v|json }}
-    {%-   endif %}
-    {%- endfor %}
-                            {%- endif %}
+{%-       endif %}
+{%-     endfor %}
+{%-                             endif %}
   pkg.installed:
-                            {%- if package in software and software[package] is mapping %}
+{%-                             if package in software and software[package] is mapping %}
     - sources:
       - {{ software.name }}: {{ d.dir.tmp ~ '/' ~ comp ~ name ~ software['version'] }}
       - {{ software.name }}: {{ software[package]['source'] }}
-                                {%- if 'source_hash' in software[package] %}
+{%-                                 if 'source_hash' in software[package] %}
     - require:
       - module: {{ formula }}-{{ comp }}-{{ name }}-{{ package }}-download
-                                {%- endif %}
-                            {%- else %}  {# package #}
+{%-                                 endif %}
+{%-                             else %}  {# package #}
     - name: {{ software.get('name', name) }}
-                            {%- endif %}
+{%-                             endif %}
     - reload_modules: true
 
                             {#- ARCHIVE PACKAGE INSTALL #}
 
-                        {%- elif package == 'archive' and package in software and software[package] is mapping %}
-                            {%- if 'source' in software[package] %}
+{%-                         elif package == 'archive' and package in software and software[package] is mapping %}
+{%-                             if 'source' in software[package] %}
   file.directory:
     - name: {{ software['path'] }}
     - user: {{ d.identity.rootuser }}
@@ -119,10 +119,10 @@ include:
   archive.extracted:
     {{- format_kwargs(software[package]) }}
     - trim_output: true
-                {%- if 'tar' in software[package]['source'] or 'tgz' in software[package]['source'] %}
+{%-                 if 'tar' in software[package]['source'] or 'tgz' in software[package]['source'] %}
     - enforce_toplevel: false
     - options: --strip-components=1
-                {%- endif %}
+{%-                 endif %}
     - retry: {{ d.retry_option|json }}
     - user: {{ d.identity.rootuser }}
     - group: {{ d.identity.rootgroup }}
@@ -130,22 +130,22 @@ include:
       - file: {{ formula }}-{{ comp }}-{{ name }}-{{ package }}-install
     - unless:
       - test -f {{ software['path'] }}/dummyFILENAME
-                                {%- if 'commands' in software  and software['commands'] is iterable %}
-                                    {%- for cmd in software['commands'] %}
+{%-                                 if 'commands' in software  and software['commands'] is iterable %}
+{%-                                     for cmd in software['commands'] %}
       - test -x {{ software['path'] }}/bin/{{ cmd }}
-                                    {%- endfor %}
-                                {%- endif %}
+{%-                                     endfor %}
+{%-                                 endif %}
 
-                            {%- else %}
+{%-                             else %}
   test.show_notification:
     - text: |
         Note: there is no dict named 'source' in 'pkg:{{ comp }}:{{ name }}'.
-                            {%- endif %}
+{%-                             endif %}
 
                             {#- MACAPP PACKAGE INSTALL #}
 
-                        {%- elif package == 'macapp' and package in software and software[package] is mapping %}
-                            {%- if 'source' in software[package] %}
+{%-                         elif package == 'macapp' and package in software and software[package] is mapping %}
+{%-                             if 'source' in software[package] %}
   macpackage.installed:
     - name: {{ d.dir.tmp ~ '/' ~ comp ~ name ~ software['version'] }}
     - store: True
@@ -176,25 +176,25 @@ include:
     - require:
       - file: {{ formula }}-{{ comp }}-{{ name }}-{{ package }}-install
 
-                            {%- else %}
+{%-                             else %}
   test.show_notification:
     - text: |
         Note: there is no dict named 'source' in 'pkg:{{ comp }}:{{ name }}'.
-                            {%- endif %}
-                        {%- else %}
+{%-                             endif %}
+{%-                         else %}
   test.show_notification:
     - text: |
         Note: there is no dict named {{ package }} in 'pkg:{{ comp }}:{{ name }}'.
               Maybe the value of 'pkg:{{ comp }}:{{ name }}:package_format' is incorrect.
-                        {%- endif %}
+{%-                         endif %}
 
                                     {#- SYMLINK INSTALL #}
 
-                        {%- if grains.kernel|lower in ('linux', 'darwin') %}
-                            {%- if package in ('archive', 'macapp') %}
-                                {%- if d.linux.altpriority|int <= 0 or grains.os_family in ('MacOS', 'Arch') %}
-                                    {%- if 'commands' in software  and software['commands'] is iterable %}
-                                        {%- for cmd in software['commands'] %}
+{%-                         if grains.kernel|lower in ('linux', 'darwin') %}
+{%-                             if package in ('archive', 'macapp') %}
+{%-                                 if d.linux.altpriority|int <= 0 or grains.os_family in ('MacOS', 'Arch') %}
+{%-                                     if 'commands' in software  and software['commands'] is iterable %}
+{%-                                         for cmd in software['commands'] %}
 
 {{ formula }}-{{ comp }}-{{ name }}-{{ package }}-install-symlink-{{ cmd }}:
   file.symlink:
@@ -203,17 +203,17 @@ include:
     - onlyif: test -f {{ d.dir.symlink }}/{{ 's' if 'service' in software else '' }}bin/{{ cmd }}
     - force: True
 
-                                        {%- endfor %}  {# command #}
-                                    {%- endif %}       {# commands #}
-                                {%- endif %}           {# service #}
-                            {%- endif %}               {# symlink #}
-                        {%- endif %}                   {# darwin/linux #}
-                    {%- endif %}                       {# software/package #}
+{%-                                         endfor %}  {# command #}
+{%-                                     endif %}       {# commands #}
+{%-                                 endif %}           {# service #}
+{%-                             endif %}               {# symlink #}
+{%-                         endif %}                   {# darwin/linux #}
+{%-                     endif %}                       {# software/package #}
 
                         {#- SERVICE INSTALL #}
 
-                    {%- if 'service' in software and software['service'] %}
-                        {%- set service = software['service'] %}
+{%-                     if 'service' in software and software['service'] %}
+{%-                         set service = software['service'] %}
 
 {{ formula }}-{{ comp }}-{{ service.name }}-install-service-directory:
   file.directory:
@@ -226,7 +226,7 @@ include:
       - sls: {{ sls_config_users }}
       - file: {{ formula }}-install-prerequisites
     - require_in:
-                        {%-  if grains.kernel == 'Linux' %}
+{%-                          if grains.kernel == 'Linux' %}
       - file: {{ formula }}-{{ comp }}-{{ service.name }}-install-service-systemd
 
 {{ formula }}-{{ comp }}-{{ service.name }}-install-service-systemd:
@@ -254,8 +254,8 @@ include:
   cmd.run:
     - name: systemctl daemon-reload
 
-                        {%- elif grains.kernel == 'Darwin' %}
-                            {%- set servicename = name if 'name' not in service else service.name %}
+{%-                         elif grains.kernel == 'Darwin' %}
+{%-                             set servicename = name if 'name' not in service else service.name %}
     - require_in:
       - file: {{ formula }}-{{ comp }}-{{ servicename }}-install-service-launched
 
@@ -275,9 +275,9 @@ include:
         user: {{ software['user'] }}
         limits: {{ d.limits }}
 
-                        {%- endif %}   {# linux/darwin #}
-                    {%- endif %}       {# service #}
-                {%- endif %}           {# wanted #}
-            {%- endfor %}              {# component #}
-        {%- endif %}                   {# wanted #}
-    {%- endfor %}                      {# components #}
+{%-                         endif %}   {# linux/darwin #}
+{%-                     endif %}       {# service #}
+{%-                 endif %}           {# wanted #}
+{%-             endfor %}              {# component #}
+{%-         endif %}                   {# wanted #}
+{%-     endfor %}                      {# components #}
