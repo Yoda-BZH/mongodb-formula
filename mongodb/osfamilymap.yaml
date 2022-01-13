@@ -11,8 +11,8 @@
 # osfamilymap: {}
 ---
 {%- if grains.os == 'MacOS' %}
-    {%- set macos_rootuser = salt['cmd.run']("stat -f '%Su' /dev/console") %}
-    {%- set macos_rootgroup = salt['cmd.run']("stat -f '%Sg' /dev/console") %}
+{%-   set macos_rootuser = salt['cmd.run']("stat -f '%Su' /dev/console") %}
+{%-   set macos_rootgroup = salt['cmd.run']("stat -f '%Sg' /dev/console") %}
 {%- endif %}
 
 Arch:
@@ -40,19 +40,15 @@ Debian:
       file: /etc/apt/sources.list.d/mongodb-org-REL.list
       from_repo_value: {{ '' if 'oscodename' not in grains else grains.oscodename }}
       key_url: https://www.mongodb.org/static/pgp/server-REL.asc
-                 {%- if 'oscodename' in grains %}
+{%- if 'oscodename' in grains %}
+{%-   set deb_suite = grains.oscodename ~ "/mongodb-org/REL" %}
+{%-   set deb_component = 'main' if grains.os in ('Debian',) else 'multiverse' %}
+{%-   set deb_family = grains.os_family|lower %}
       # yamllint disable-line rule:line-length
-      baseurl: "http://repo.mongodb.org/apt/{{ grains.os_family|lower }}"
-      architectures: "amd64,arm64"
+      name: "deb [arch=amd64,arm64] http://repo.mongodb.org/apt/{{ deb_family }} {{ deb_suite }} {{ deb_component}}"
       #name:  {{ grains.oscodename }}/mongodb-org/REL {{ 'main' if grains.os in ('Debian',) else 'multiverse' }}
-      dist: [ "{{ grains.oscodename }}/mongodb-org/REL" ]
-{% if grains.os in ('Debian',) %}
-      comps: 'main'
-{% else %}
-      comps: 'multiverse'
-{% endif %}
       # yamllint enable-line rule:line-length
-                 {%- endif %}
+{%- endif %}
     database:
       mongod:
         name: mongodb-org
